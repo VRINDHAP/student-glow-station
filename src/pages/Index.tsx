@@ -4,8 +4,16 @@ import { UploadCard } from "@/components/UploadCard";
 import { RankingDashboard } from "@/components/RankingDashboard";
 import { AccessControl } from "@/components/AccessControl";
 
-// Mock data for demonstration
-const mockStudents = [
+interface Student {
+  id: string;
+  name: string;
+  photoUrl: string;
+  loves: number;
+  hates: number;
+}
+
+// Initial mock data
+const initialStudents: Student[] = [
   {
     id: "1",
     name: "Alex Johnson",
@@ -52,6 +60,19 @@ const mockStudents = [
 
 const Index = () => {
   const [hasAccess, setHasAccess] = useState(false);
+  const [students, setStudents] = useState<Student[]>(initialStudents);
+
+  const handlePhotoUpload = (name: string, photoUrl: string) => {
+    const newStudent: Student = {
+      id: Date.now().toString(),
+      name,
+      photoUrl,
+      loves: 0,
+      hates: 0,
+    };
+    
+    setStudents(prev => [...prev, newStudent]);
+  };
 
   return (
     <>
@@ -71,8 +92,8 @@ const Index = () => {
             </header>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              <UploadCard />
-              {mockStudents.map((student) => (
+              <UploadCard onPhotoUploaded={handlePhotoUpload} />
+              {students.map((student) => (
                 <StudentCard
                   key={student.id}
                   id={student.id}

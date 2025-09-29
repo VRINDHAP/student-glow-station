@@ -5,12 +5,46 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-export const UploadCard = () => {
+interface UploadCardProps {
+  onPhotoUploaded: (name: string, photoUrl: string) => void;
+}
+
+export const UploadCard = ({ onPhotoUploaded }: UploadCardProps) => {
   const [showDialog, setShowDialog] = useState(false);
   const [name, setName] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleUploadClick = () => {
     setShowDialog(true);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !selectedFile) return;
+
+    setIsUploading(true);
+
+    // Convert file to data URL for immediate display
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const photoUrl = event.target?.result as string;
+      onPhotoUploaded(name.trim(), photoUrl);
+      
+      // Reset form
+      setName("");
+      setSelectedFile(null);
+      setIsUploading(false);
+      setShowDialog(false);
+    };
+    reader.readAsDataURL(selectedFile);
   };
 
   return (
@@ -38,7 +72,7 @@ export const UploadCard = () => {
               Upload Your Photo
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-4">
+          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
             <div>
               <label className="text-sm font-medium text-foreground block mb-2">
                 Your Name
@@ -48,6 +82,7 @@ export const UploadCard = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full"
+                required
               />
             </div>
             <div>
@@ -57,19 +92,32 @@ export const UploadCard = () => {
               <Input
                 type="file"
                 accept="image/*"
+                onChange={handleFileSelect}
                 className="w-full"
+                required
               />
             </div>
+            {selectedFile && (
+              <div className="text-center">
+                <img
+                  src={URL.createObjectURL(selectedFile)}
+                  alt="Preview"
+                  className="w-20 h-20 rounded-full object-cover mx-auto border-2 border-primary/20"
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  {selectedFile.name}
+                </p>
+              </div>
+            )}
             <Button 
-              className="w-full bg-gradient-aura text-white hover:opacity-90"
+              type="submit"
+              disabled={!name.trim() || !selectedFile || isUploading}
+              className="w-full bg-gradient-aura text-white hover:opacity-90 disabled:opacity-50"
               size="lg"
             >
-              Upload
+              {isUploading ? "Uploading..." : "Upload"}
             </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Note: Full upload functionality requires Supabase connection
-            </p>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </>
