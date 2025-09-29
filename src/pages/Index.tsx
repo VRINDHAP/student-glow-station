@@ -12,55 +12,9 @@ interface Student {
   hates: number;
 }
 
-// Initial mock data
-const initialStudents: Student[] = [
-  {
-    id: "1",
-    name: "Alex Johnson",
-    photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-    loves: 45,
-    hates: 5,
-  },
-  {
-    id: "2",
-    name: "Sarah Smith",
-    photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-    loves: 38,
-    hates: 6,
-  },
-  {
-    id: "3",
-    name: "Mike Chen",
-    photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
-    loves: 35,
-    hates: 7,
-  },
-  {
-    id: "4",
-    name: "Emma Davis",
-    photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
-    loves: 32,
-    hates: 8,
-  },
-  {
-    id: "5",
-    name: "John Wilson",
-    photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
-    loves: 28,
-    hates: 10,
-  },
-  {
-    id: "6",
-    name: "Lisa Brown",
-    photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa",
-    loves: 25,
-    hates: 12,
-  },
-];
-
 const Index = () => {
   const [hasAccess, setHasAccess] = useState(false);
-  const [students, setStudents] = useState<Student[]>(initialStudents);
+  const [students, setStudents] = useState<Student[]>([]);
 
   const handlePhotoUpload = (name: string, photoUrl: string) => {
     const newStudent: Student = {
@@ -73,6 +27,31 @@ const Index = () => {
     
     setStudents(prev => [...prev, newStudent]);
   };
+
+  const handleVote = (id: string, type: "love" | "hate") => {
+    setStudents(prev =>
+      prev.map(student =>
+        student.id === id
+          ? {
+              ...student,
+              loves: type === "love" ? student.loves + 1 : student.loves,
+              hates: type === "hate" ? student.hates + 1 : student.hates,
+            }
+          : student
+      )
+    );
+  };
+
+  // Calculate rankings dynamically
+  const rankedStudents = [...students]
+    .map(student => ({
+      ...student,
+      aura: student.loves + student.hates > 0
+        ? Math.round((student.loves / (student.loves + student.hates)) * 100)
+        : 0,
+    }))
+    .sort((a, b) => b.aura - a.aura)
+    .slice(0, 10);
 
   return (
     <>
@@ -101,6 +80,7 @@ const Index = () => {
                   photoUrl={student.photoUrl}
                   initialLoves={student.loves}
                   initialHates={student.hates}
+                  onVote={handleVote}
                 />
               ))}
             </div>
@@ -108,7 +88,7 @@ const Index = () => {
 
           {/* Right Sidebar - Rankings Dashboard */}
           <div className="w-96 border-l border-border bg-muted/20 p-6 overflow-hidden">
-            <RankingDashboard />
+            <RankingDashboard rankings={rankedStudents} totalStudents={students.length} />
           </div>
         </div>
       </div>

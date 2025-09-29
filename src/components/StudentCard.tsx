@@ -20,21 +20,13 @@ export const StudentCard = ({
   initialHates,
   onVote,
 }: StudentCardProps) => {
-  const [loves, setLoves] = useState(initialLoves);
-  const [hates, setHates] = useState(initialHates);
-
   const calculateAura = () => {
-    const total = loves + hates;
+    const total = initialLoves + initialHates;
     if (total === 0) return 0;
-    return Math.round((loves / total) * 100);
+    return Math.round((initialLoves / total) * 100);
   };
 
   const handleVote = (type: "love" | "hate") => {
-    if (type === "love") {
-      setLoves(loves + 1);
-    } else {
-      setHates(hates + 1);
-    }
     onVote?.(id, type);
   };
 
@@ -66,7 +58,7 @@ export const StudentCard = ({
           size="lg"
         >
           <Heart className="w-4 h-4 fill-current" />
-          {loves}
+          {initialLoves}
         </Button>
         <Button
           onClick={() => handleVote("hate")}
@@ -75,7 +67,7 @@ export const StudentCard = ({
           size="lg"
         >
           <ThumbsDown className="w-4 h-4" />
-          {hates}
+          {initialHates}
         </Button>
       </div>
     </Card>
